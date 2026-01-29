@@ -4,6 +4,8 @@ import { MugConfig, MugStyle, AIAdvice, CartItem } from './types';
 import { MUG_STYLES, FONT_OPTIONS, MUG_COLORS, TEXT_COLORS, SUGGESTION_THEMES } from './constants';
 import MugPreview from './components/MugPreview';
 import CartDrawer from './components/CartDrawer';
+import DocumentationModal from './components/DocumentationModal';
+import ShareModal from './components/ShareModal';
 import { gemini } from './services/geminiService';
 
 type ViewMode = 'studio' | 'lifestyle' | 'split';
@@ -45,6 +47,10 @@ const App: React.FC = () => {
   // Shopping Cart State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // New Modals State
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const contrastRatio = useMemo(() => getContrastRatio(config.mugColor, config.textColor), [config.mugColor, config.textColor]);
   const isLowContrast = contrastRatio < 4.5;
@@ -118,9 +124,17 @@ const App: React.FC = () => {
       {/* Sidebar Controls */}
       <aside className="w-full lg:w-[420px] bg-white border-r border-stone-200 lg:h-screen overflow-y-auto p-8 flex flex-col gap-8 custom-scrollbar relative z-30 shadow-xl lg:shadow-none">
         <header>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-stone-800 text-white p-1 rounded font-bold text-lg">MC</span>
-            <h1 className="text-2xl font-serif font-bold tracking-tight">MugCanvas AI</h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="bg-stone-800 text-white p-1 rounded font-bold text-lg">MC</span>
+              <h1 className="text-2xl font-serif font-bold tracking-tight">MugCanvas AI</h1>
+            </div>
+            <button 
+              onClick={() => setIsGuideOpen(true)}
+              className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-800 transition-colors"
+            >
+              Guide
+            </button>
           </div>
           <p className="text-stone-500 text-sm">Elevate your ritual with premium design.</p>
         </header>
@@ -311,18 +325,28 @@ const App: React.FC = () => {
 
             <div className="h-6 w-px bg-stone-200 hidden md:block"></div>
 
-            {/* Cart Button */}
-            <button 
-              onClick={() => setIsCartOpen(true)}
-              className="relative w-10 h-10 bg-white rounded-full border border-stone-100 shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors"
-            >
-              <span className="text-lg">🛍️</span>
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-400 text-stone-900 text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
-                  {cartItems.reduce((acc, i) => acc + i.quantity, 0)}
-                </span>
-              )}
-            </button>
+            {/* Actions: Share & Cart */}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setIsShareOpen(true)}
+                className="relative w-10 h-10 bg-white rounded-full border border-stone-100 shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors"
+                title="Share Design"
+              >
+                <span className="text-lg">📤</span>
+              </button>
+              
+              <button 
+                onClick={() => setIsCartOpen(true)}
+                className="relative w-10 h-10 bg-white rounded-full border border-stone-100 shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors"
+              >
+                <span className="text-lg">🛍️</span>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-400 text-stone-900 text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                    {cartItems.reduce((acc, i) => acc + i.quantity, 0)}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -419,4 +443,47 @@ const App: React.FC = () => {
                     Strategic Enhancements
                   </h4>
                   <ul className="grid gap-3">
-                    {aiAdvice.suggestions.map((s,
+                    {aiAdvice.suggestions.map((s, i) => (
+                      <li key={i} className="flex items-start gap-4 p-3 bg-stone-50/50 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-stone-100 transition-all">
+                        <span className="text-amber-500 text-sm">✦</span>
+                        <span className="text-xs font-semibold text-stone-700 leading-snug">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-stone-300">
+                <p className="text-xs uppercase font-bold tracking-[0.2em]">Awaiting design input for deep analysis...</p>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+
+      {/* Cart Drawer */}
+      <CartDrawer 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onRemove={removeCartItem}
+        onUpdateQuantity={updateQuantity}
+        onClearCart={clearCart}
+      />
+
+      {/* New Modals */}
+      <DocumentationModal 
+        isOpen={isGuideOpen} 
+        onClose={() => setIsGuideOpen(false)} 
+      />
+      
+      <ShareModal 
+        isOpen={isShareOpen} 
+        onClose={() => setIsShareOpen(false)} 
+        config={config}
+      />
+    </div>
+  );
+};
+
+export default App;

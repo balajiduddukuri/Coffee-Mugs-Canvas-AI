@@ -1,0 +1,7 @@
+{
+  "name": "Coffee Mugs Canvas AI",
+  "description": "A premium AI-powered coffee mug preview assistant that helps users visualize custom quotes on various mug styles with intelligent design advice and lifestyle mockup generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
